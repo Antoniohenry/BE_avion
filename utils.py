@@ -1,44 +1,43 @@
 # -*- coding: utf-8 -*-
-'''
 
-Utilities
-
-'''
 import math
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 
-"""
-Unit convertions
-"""
-
-
-def rad_of_deg(d): return d / 180. * math.pi
+""" Unit convertions """
 
 
-def deg_of_rad(r): return r * 180. / math.pi
+def rad_of_deg(d):
+    return d / 180. * math.pi
+
+
+def deg_of_rad(r):
+    return r * 180. / math.pi
 
 
 # http://en.wikipedia.org/wiki/Nautical_mile
-def m_of_NM(nm): return nm * 1852.
+def m_of_NM(nm):
+    return nm * 1852.
 
 
-def NM_of_m(m): return m / 1852.
+def NM_of_m(m):
+    return m / 1852.
 
 
 # http://en.wikipedia.org/wiki/Knot_(speed)
-def mps_of_kt(kt): return kt * 0.514444
+def mps_of_kt(kt):
+    return kt * 0.514444
 
 
-def kt_of_mps(mps): return mps / 0.514444
+def kt_of_mps(mps):
+    return mps / 0.514444
 
 
-"""
-International Standard Atmosphere Model
-see: http://en.wikipedia.org/wiki/International_Standard_Atmosphere
-"""
+""" International Standard Atmosphere Model see: 
+http://en.wikipedia.org/wiki/International_Standard_Atmosphere """
 _name, _h0, _z0, _a, _T0, _p0 = np.arange(6)
-#      name         h(m)    z(km)    a(K/m)    T0(K)     p0(Pa)
+# name, h(m), z(km), a(K/m), T0(K), p0(Pa)
 isa_param = \
     [['Troposphere', 0, 0.0, -6.5e-3, 288.15, 101325],
      ['Tropopause', 11000, 11.019, 0.0e-3, 216.65, 22632],
@@ -52,8 +51,10 @@ isa_param = \
 
 def isa(h):
     layer = 0
-    while isa_param[layer][_h0] < h: layer += 1
-    if layer == 0: layer = 1  # in case h<= 0
+    while isa_param[layer][_h0] < h:
+        layer += 1
+    if layer == 0:
+        layer = 1  # in case h<= 0
     name, h0, z0, a, T0, p0 = isa_param[layer - 1]
     dh = h - h0
     T = T0 + a * dh
@@ -66,9 +67,7 @@ def isa(h):
     return p, rho, T
 
 
-"""
-Compute numerical jacobian 
-"""
+""" Compute numerical jacobian  """
 
 
 def num_jacobian(X, U, P, dyn):
@@ -95,21 +94,26 @@ def num_jacobian(X, U, P, dyn):
     return A, B
 
 
-"""
-Plotting
-"""
+""" Plotting """
 
 
 def decorate(ax, title=None, xlab=None, ylab=None, legend=None, xlim=None, ylim=None, min_yspan=None):
     ax.xaxis.grid(color='k', linestyle='-', linewidth=0.2)
     ax.yaxis.grid(color='k', linestyle='-', linewidth=0.2)
-    if xlab: ax.xaxis.set_label_text(xlab)
-    if ylab: ax.yaxis.set_label_text(ylab)
-    if title: ax.set_title(title, {'fontsize': 20})
-    if legend != None: ax.legend(legend, loc='best')
-    if xlim != None: ax.set_xlim(xlim[0], xlim[1])
-    if ylim != None: ax.set_ylim(ylim[0], ylim[1])
-    if min_yspan != None: ensure_yspan(ax, min_yspan)
+    if xlab:
+        ax.xaxis.set_label_text(xlab)
+    if ylab:
+        ax.yaxis.set_label_text(ylab)
+    if title:
+        ax.set_title(title, {'fontsize': 20})
+    if legend is not None:
+        ax.legend(legend, loc='best')
+    if xlim is not None:
+        ax.set_xlim(xlim[0], xlim[1])
+    if ylim is not None:
+        ax.set_ylim(ylim[0], ylim[1])
+    if min_yspan is not None:
+        ensure_yspan(ax, min_yspan)
 
 
 def ensure_yspan(ax, yspan):
@@ -120,7 +124,7 @@ def ensure_yspan(ax, yspan):
 
 
 def prepare_fig(fig=None, window_title=None, figsize=(20.48, 10.24), margins=None):
-    if fig == None:
+    if fig is None:
         fig = plt.figure(figsize=figsize)
     else:
         plt.figure(fig.number)

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
-Dynamic model for a 3 Degrees Of Freedom longitudinal aircraft
-'''
-import math, numpy as np, scipy.optimize
+""" Dynamic model for a 3 Degrees Of Freedom longitudinal aircraft """
+
+import math
+
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.optimize
 
 import utils as ut
 
@@ -28,6 +30,7 @@ def propulsion_model(X, U, P):
 
 
 def get_aero_coefs(va, alpha, q, dphr, P):
+    """ P est le paramètre avion """
     St_over_S = P.St / P.S
     CL0 = (St_over_S * 0.25 * P.CLat - P.CLa) * P.a0
     CLa = P.CLa + St_over_S * P.CLat * (1 - 0.25)
@@ -41,7 +44,7 @@ def get_aero_coefs(va, alpha, q, dphr, P):
         alphat = alpha - 0.25 * (alpha - P.a0) + dphr + P.Cmq * P.lt / va * q
         CLt = P.CLat * alphat
         CDi = CLw ** 2 / (math.pi * P._lambda) + St_over_S * CLt ** 2 / (
-                    math.pi * P._lambdat) + St_over_S * CLw * CLt / (math.pi * P._lambda)
+                math.pi * P._lambdat) + St_over_S * CLw * CLt / (math.pi * P._lambda)
     CD = P.CD0 + CDi
     Cm = P.Cm0 - P.ms * P.CLa * (alpha - P.a0) + P.Cmq * P.lt / va * q + P.Cmd * dphr
     return CL, CD, Cm
@@ -55,8 +58,8 @@ def get_aero_forces_and_moments(X, U, P):
     return L, D, M
 
 
-def dyn(X, t, U, P):
-    '''  Dynamic model '''
+def dyn(X, U, P):
+    """  Dynamic model """
     Xdot = np.zeros(s_size)
     gamma_a = X[s_th] - X[s_a]  # air path angle
     cg, sg = math.cos(gamma_a), math.sin(gamma_a)
@@ -89,7 +92,7 @@ def trim(P, args=None):
         ca, sa = math.cos(alpha), math.sin(alpha)
         return [(F * ca - D) / P.m - P.g * sg, -(L + F * sa) / P.m + P.g * cg, M]
 
-    p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]
+    p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]  # TODO list ou tableau ?
     sol = scipy.optimize.root(err_func, p0, method='hybr')
     dm, dth, alpha = sol.x
     X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, 0, 0]
@@ -255,7 +258,7 @@ class Param_737_300(Param):
 all_ac_types = [Param_A320, Param_737_800, Param_A319, Param_A321, Param_737_700, Param_737_300]
 
 
-def plot(time, X, U=None, figure=None, window_title="Trajectory"):
+def plot(time, X, figure=None, window_title="Trajectory"):
     figure = ut.prepare_fig(figure, window_title, (20.48, 10.24))
     plots = [("$y$", "m", X[:, s_y], None),
              ("$h$", "m", X[:, s_h], 2.),
