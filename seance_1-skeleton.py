@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,19 +59,37 @@ def plot_Cm(P, filename=None):
         plt.savefig(filename, dpi=160)
 
 
+def plot_dphr_e(ac, filename=None):
+    alphas = np.linspace(ut.rad_of_deg(-10), ut.rad_of_deg(20), 30)
+    mss = [-0.1, 0., 0.2, 1.]
+
+    def dphr(alpha, ms):
+        return (- ac.Cm0 + ms * ac.CLa * (alpha - ac.a0)) / ac.Cmd
+
+    for ms in mss:
+        dphrs = [dphr(alpha, ms) for alpha in alphas]
+        plt.plot(alphas, dphrs)
+        ut.decorate(plt.gca(), 'delta phr en fonction de alpha', 'Incidence', 'delta phr',
+                    ['$ms =  ${: .1f}'.format(ms) for ms in mss])
+    if filename is not None:
+        plt.savefig(filename, dpi=160)
+
+
 def seance_1(ac=dyn.Param_A321()):
-    plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
-    plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
-    plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
-    # plot_dphr_e(ac, 'plots/{}_dPHR.png'.format(ac.get_name()))
+    # plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
+    # plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
+    # plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
+    plot_dphr_e(ac, 'plots/{}_dPHR.png'.format(ac.get_name()))
     # plot_CLe(ac, 'plots/{}_CLe.png'.format(ac.get_name()))
     # plot_polar(ac, 'plots/{}_polar.png'.format(ac.get_name()))
 
 
 if __name__ == "__main__":
-    if 'all' in sys.argv:
-        for t in dyn.all_ac_types:
-            seance_1(t())
-    else:
-        seance_1(dyn.Param_A320())
-        plt.show()
+    # if 'all' in sys.argv:
+    #     for t in dyn.all_ac_types:
+    #         seance_1(t())
+    # else:
+    #     seance_1(dyn.Param_A321())
+    #     plt.show()
+
+    seance_1()

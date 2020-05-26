@@ -4,5 +4,5 @@
 Antoine, Benjamin, Justine, Naoufel
 
 # dependencies
-scipy, matplotlib
+scipy, matplotlib \
 Il faut créer un dossier plots à la racine
