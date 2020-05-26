@@ -134,65 +134,65 @@ class Param:
     def get_name(self): return self.name.replace(" ", "_")
 
 
-class Param_A320(Param):
-    def __init__(self, m_k=0.5):
-        Param.__init__(self)
-        self.name = 'Airbus A-320'
-        self.m_OWE = 39733.
-        self.m_MTOW = 73500.
-        self.m_k = m_k
-
-        self.l_fus = 37.57  # length of fuselage
-        self.cbar = 4.19  # wing reference chord
-        self.St = 31.  # tail lifting surface
-        self.S = 122.44  # wing surface
-        self._lambdat = 5.  # tail aspect ratio
-        self._lambda = 9.39  # wing aspect ratio
-
-        self.F0 = 2. * 111205  # engine max thrust
-        self.eng_name = 'CFM 56-5A1'
-
-        self.compute_auxiliary()
-
-
-class Param_737_800(Param):
-    def __init__(self, ):
-        Param.__init__(self)
-        self.name = 'Boeing 737-800'
-        self.m_OWE = 41413.
-        self.m_MTOW = 70534.
-
-        self.l_fus = 38.02  # length of fuselage
-        self.cbar = 4.17  # wing reference chord
-        self.St = 32.8  # tail lifting surface
-        self.S = 124.6  # wing surface
-        self._lambdat = 6.28  # tail aspect ratio
-        self._lambda = 9.45  # wing aspect ratio
-
-        self.F0 = 2. * 106757  # engine max thrust
-        self.eng_name = 'CFM 56-7B24'
-
-        self.compute_auxiliary()
-
-
-class Param_A319(Param):
-    def __init__(self):
-        Param.__init__(self)
-        self.name = 'Airbus A-319'
-        self.m_OWE = 39358.
-        self.m_MTOW = 64000.
-
-        self.l_fus = 33.84  # length of fuselage
-        self.cbar = 4.19  # wing reference chord
-        self.St = 31.0  # tail lifting surface
-        self.S = 122.44  # wing surface
-        self._lambdat = 5.  # tail aspect ratio
-        self._lambda = 9.39  # wing aspect ratio
-
-        self.F0 = 2. * 97860  # engine max thrust
-        self.eng_name = 'CFM 56-5B5'
-
-        self.compute_auxiliary()
+# class Param_A320(Param):
+#     def __init__(self, m_k=0.5):
+#         Param.__init__(self)
+#         self.name = 'Airbus A-320'
+#         self.m_OWE = 39733.
+#         self.m_MTOW = 73500.
+#         self.m_k = m_k
+#
+#         self.l_fus = 37.57  # length of fuselage
+#         self.cbar = 4.19  # wing reference chord
+#         self.St = 31.  # tail lifting surface
+#         self.S = 122.44  # wing surface
+#         self._lambdat = 5.  # tail aspect ratio
+#         self._lambda = 9.39  # wing aspect ratio
+#
+#         self.F0 = 2. * 111205  # engine max thrust
+#         self.eng_name = 'CFM 56-5A1'
+#
+#         self.compute_auxiliary()
+#
+#
+# class Param_737_800(Param):
+#     def __init__(self, ):
+#         Param.__init__(self)
+#         self.name = 'Boeing 737-800'
+#         self.m_OWE = 41413.
+#         self.m_MTOW = 70534.
+#
+#         self.l_fus = 38.02  # length of fuselage
+#         self.cbar = 4.17  # wing reference chord
+#         self.St = 32.8  # tail lifting surface
+#         self.S = 124.6  # wing surface
+#         self._lambdat = 6.28  # tail aspect ratio
+#         self._lambda = 9.45  # wing aspect ratio
+#
+#         self.F0 = 2. * 106757  # engine max thrust
+#         self.eng_name = 'CFM 56-7B24'
+#
+#         self.compute_auxiliary()
+#
+#
+# class Param_A319(Param):
+#     def __init__(self):
+#         Param.__init__(self)
+#         self.name = 'Airbus A-319'
+#         self.m_OWE = 39358.
+#         self.m_MTOW = 64000.
+#
+#         self.l_fus = 33.84  # length of fuselage
+#         self.cbar = 4.19  # wing reference chord
+#         self.St = 31.0  # tail lifting surface
+#         self.S = 122.44  # wing surface
+#         self._lambdat = 5.  # tail aspect ratio
+#         self._lambda = 9.39  # wing aspect ratio
+#
+#         self.F0 = 2. * 97860  # engine max thrust
+#         self.eng_name = 'CFM 56-5B5'
+#
+#         self.compute_auxiliary()
 
 
 class Param_A321(Param):
@@ -215,47 +215,47 @@ class Param_A321(Param):
         self.compute_auxiliary()
 
 
-class Param_737_700(Param):
-    def __init__(self):
-        Param.__init__(self)
-        self.name = 'Boeing 737-700'
-        self.m_OWE = 37648.
-        self.m_MTOW = 60326.
+# class Param_737_700(Param):
+#     def __init__(self):
+#         Param.__init__(self)
+#         self.name = 'Boeing 737-700'
+#         self.m_OWE = 37648.
+#         self.m_MTOW = 60326.
+#
+#         self.l_fus = 32.18  # length of fuselage
+#         self.cbar = 4.17  # wing reference chord
+#         self.St = 32.8  # tail lifting surface
+#         self.S = 124.60  # wing surface
+#         self._lambdat = 6.28  # tail aspect ratio
+#         self._lambda = 9.44  # wing aspect ratio
+#
+#         self.F0 = 2. * 91633  # engine max thrust
+#         self.eng_name = 'CFM 56-7B20'
+#
+#         self.compute_auxiliary()
+#
+#
+# class Param_737_300(Param):
+#     def __init__(self):
+#         Param.__init__(self)
+#         self.name = 'Boeing 737-300'
+#         self.m_OWE = 31480.
+#         self.m_MTOW = 56473.
+#
+#         self.l_fus = 32.18  # length of fuselage
+#         self.cbar = 3.73  # wing reference chord
+#         self.St = 31.31  # tail lifting surface
+#         self.S = 91.04  # wing surface
+#         self._lambdat = 5.15  # tail aspect ratio
+#         self._lambda = 9.16  # wing aspect ratio
+#
+#         self.F0 = 2. * 88694  # engine max thrust
+#         self.eng_name = 'CFM 56-3B1'
+#
+#         self.compute_auxiliary()
 
-        self.l_fus = 32.18  # length of fuselage
-        self.cbar = 4.17  # wing reference chord
-        self.St = 32.8  # tail lifting surface
-        self.S = 124.60  # wing surface
-        self._lambdat = 6.28  # tail aspect ratio
-        self._lambda = 9.44  # wing aspect ratio
 
-        self.F0 = 2. * 91633  # engine max thrust
-        self.eng_name = 'CFM 56-7B20'
-
-        self.compute_auxiliary()
-
-
-class Param_737_300(Param):
-    def __init__(self):
-        Param.__init__(self)
-        self.name = 'Boeing 737-300'
-        self.m_OWE = 31480.
-        self.m_MTOW = 56473.
-
-        self.l_fus = 32.18  # length of fuselage
-        self.cbar = 3.73  # wing reference chord
-        self.St = 31.31  # tail lifting surface
-        self.S = 91.04  # wing surface
-        self._lambdat = 5.15  # tail aspect ratio
-        self._lambda = 9.16  # wing aspect ratio
-
-        self.F0 = 2. * 88694  # engine max thrust
-        self.eng_name = 'CFM 56-3B1'
-
-        self.compute_auxiliary()
-
-
-all_ac_types = [Param_A320, Param_737_800, Param_A319, Param_A321, Param_737_700, Param_737_300]
+# all_ac_types = [Param_A320, Param_737_800, Param_A319, Param_A321, Param_737_700, Param_737_300]
 
 
 def plot(time, X, figure=None, window_title="Trajectory"):
