@@ -68,8 +68,8 @@ def plot_dphr_e(ac, filename=None):
 
     for ms in mss:
         dphrs = [dphr(alpha, ms) for alpha in alphas]
-        plt.plot(alphas, dphrs)
-        ut.decorate(plt.gca(), 'delta phr en fonction de alpha', 'Incidence', 'delta phr',
+        plt.plot(ut.deg_of_rad(alphas), dphrs)
+        ut.decorate(plt.gca(), r'$\delta_{phr}$ en fonction de $\alpha$', r'$\alpha$ en degres', u'$\delta_{phr}$',
                     ['$ms =  ${: .1f}'.format(ms) for ms in mss])
     if filename is not None:
         plt.savefig(filename, dpi=160)
