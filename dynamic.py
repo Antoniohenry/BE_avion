@@ -127,7 +127,7 @@ class Param:
 
         self.CLat = math.pi * self._lambdat / (1. + math.sqrt(1 + (0.5 * self._lambdat) ** 2))
 
-        self.Vt = self.lt * self.St / self.cbar / self.S  # tail volume
+        self.Vt = (self.lt * self.St / self.cbar / self.S)  # tail volume
         self.Cmd = -self.Vt * self.CLat
         self.Cmq = self.Cmd * self.CLq
 

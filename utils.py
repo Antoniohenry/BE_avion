@@ -123,7 +123,7 @@ def ensure_yspan(ax, yspan):
         ax.set_ylim(ym - yspan / 2, ym + yspan / 2)
 
 
-def prepare_fig(fig=None, window_title=None, figsize=(20.48, 10.24), margins=None):
+def prepare_fig(fig=None, window_title=None, figsize=(13.2, 6.6), margins=None):
     if fig is None:
         fig = plt.figure(figsize=figsize)
     else:

@@ -30,7 +30,6 @@ def CL(P, alpha, dphr):
 def plot_CL(P, filename=None):
     alphas = np.linspace(ut.rad_of_deg(-10), ut.rad_of_deg(20), 30)
     dms = np.linspace(ut.rad_of_deg(20), ut.rad_of_deg(-30), 3)
-    # TODO figure n'est pas utilisée ?
     figure = ut.prepare_fig(None, u'Coefficient de Portance {}'.format(P.name))
     for dm in dms:
         plt.plot(ut.deg_of_rad(alphas), CL(P, alphas, dm))
@@ -38,6 +37,7 @@ def plot_CL(P, filename=None):
     plt.legend(['$\delta _{{PHR}} =  ${:.1f}'.format(ut.deg_of_rad(dm)) for dm in dms], loc='best')
     if filename is not None:
         plt.savefig(filename, dpi=160)
+    return figure
 
 
 def Cm(P, alpha):
@@ -48,7 +48,6 @@ def Cm(P, alpha):
 def plot_Cm(P, filename=None):
     alphas = np.linspace(ut.rad_of_deg(-10), ut.rad_of_deg(20), 30)
     mss = [-0.1, 0., 0.2, 1.]
-    # TODO idem figure n'est pas utilisée ?
     figure = ut.prepare_fig(None, u'Coefficient de moment {}'.format(P.name))
     for ms in mss:
         P.set_mass_and_static_margin(0.5, ms)
@@ -57,6 +56,29 @@ def plot_Cm(P, filename=None):
                 ['$ms =  ${: .1f}'.format(ms) for ms in mss])
     if filename is not None:
         plt.savefig(filename, dpi=160)
+    return figure
+
+
+def plot_dphr_e_vt(ac, filename=None):
+    ac.Vt = ac.Vt * 1.5
+    alphas = np.linspace(ut.rad_of_deg(-10), ut.rad_of_deg(20), 30)
+    mss = [-0.1, 0., 0.2, 1.]
+
+    def dphr(alpha, ms):
+        return (- ac.Cm0 + ms * ac.CLa * (alpha - ac.a0)) / ac.Cmd
+
+    figure = ut.prepare_fig(None, r'$\delta_{phr}$ en fonction de $\alpha$ avec $V_{t} + 50\%$ {name}'.format(phr='phr',
+                                                                                                              t='t',
+                                                                                                              name=ac.name))
+    for ms in mss:
+        dphrs = [dphr(alpha, ms) for alpha in alphas]
+        plt.plot(ut.deg_of_rad(alphas), dphrs)
+        ut.decorate(plt.gca(), r'$\delta_{phr}$ en fonction de $\alpha$, $V_{t} + 50\%$', r'$\alpha$ en degres',
+                    u'$\delta_{phr}$',
+                    ['$ms =  ${: .1f}'.format(ms) for ms in mss])
+    if filename is not None:
+        plt.savefig(filename, dpi=160)
+    return figure
 
 
 def plot_dphr_e(ac, filename=None):
@@ -66,6 +88,8 @@ def plot_dphr_e(ac, filename=None):
     def dphr(alpha, ms):
         return (- ac.Cm0 + ms * ac.CLa * (alpha - ac.a0)) / ac.Cmd
 
+    figure = ut.prepare_fig(None,
+                            r'$\delta_{phr}$ en fonction de $\alpha$ {name}'.format(phr='phr', t='t', name=ac.name))
     for ms in mss:
         dphrs = [dphr(alpha, ms) for alpha in alphas]
         plt.plot(ut.deg_of_rad(alphas), dphrs)
@@ -73,13 +97,15 @@ def plot_dphr_e(ac, filename=None):
                     ['$ms =  ${: .1f}'.format(ms) for ms in mss])
     if filename is not None:
         plt.savefig(filename, dpi=160)
+    return figure
 
 
 def seance_1(ac=dyn.Param_A321()):
-    # plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
-    # plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
-    # plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
+    plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
+    plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
+    plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
     plot_dphr_e(ac, 'plots/{}_dPHR.png'.format(ac.get_name()))
+    plot_dphr_e_vt(ac, 'plots/{}_dPHR vt augmenter de 50%.png'.format(ac.get_name()))
     # plot_CLe(ac, 'plots/{}_CLe.png'.format(ac.get_name()))
     # plot_polar(ac, 'plots/{}_polar.png'.format(ac.get_name()))
 
