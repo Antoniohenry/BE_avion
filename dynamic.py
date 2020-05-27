@@ -30,7 +30,7 @@ def propulsion_model(X, U, P):
 
 
 def get_aero_coefs(va, alpha, q, dphr, P):
-    """ P est le paramètre avion """
+    """ P est le paramètre avion, va est la vitesse air """
     St_over_S = P.St / P.S
     CL0 = (St_over_S * 0.25 * P.CLat - P.CLa) * P.a0
     CLa = P.CLa + St_over_S * P.CLat * (1 - 0.25)
