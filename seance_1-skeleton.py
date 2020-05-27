@@ -66,10 +66,11 @@ def plot_dphr_e_vt(ac, filename=None):
     def dphr(alpha, ms):
         return (- ac.Cm0 + ms * ac.CLa * (alpha - ac.a0)) / ac.Cmd
 
-    figure = ut.prepare_fig(None, r'$\delta_{phr}$ en fonction de $\alpha$ avec $V_{t} + 50\%$ {name}'.format(phr='phr',
-                                                                                                              t='t',
-                                                                                                              name=ac.name))
+    figure = ut.prepare_fig(None,
+                            r'$\delta_{phr}$ en fonction de $\alpha$ avec $V_{t} + 50\%$ {name}'.format(phr='phr', t='t'
+                                                                                                        , name=ac.name))
     for ms in mss:
+        ac.set_mass_and_static_margin(ac.m_k, ms)
         dphrs = [dphr(alpha, ms) for alpha in alphas]
         plt.plot(ut.deg_of_rad(alphas), dphrs)
         ut.decorate(plt.gca(), r'$\delta_{phr}$ en fonction de $\alpha$, $V_{t} + 50\%$', r'$\alpha$ en degres',
@@ -89,6 +90,7 @@ def plot_dphr_e(ac, filename=None):
     figure = ut.prepare_fig(None, r'$\delta_{phr}$ en fonction de $\alpha$ {name}'.format(
         phr='phr', t='t', name=ac.name))
     for ms in mss:
+        ac.set_mass_and_static_margin(ac.m_k, ms)
         dphrs = [dphr(alpha, ms) for alpha in alphas]
         plt.plot(ut.deg_of_rad(alphas), dphrs)
         ut.decorate(plt.gca(), r'$\delta_{phr}$ en fonction de $\alpha$', r'$\alpha$ en degres', u'$\delta_{phr}$',
@@ -111,6 +113,7 @@ def plot_CLe(ac, filename=None):
         phr='phr', t='t', name=ac.name))
 
     for ms in mss:
+        ac.set_mass_and_static_margin(ac.m_k, ms)
         CLes = [CLe(alpha, ms) for alpha in alphas]
         plt.plot(ut.deg_of_rad(alphas), CLes)
         ut.decorate(plt.gca(), r'$C_{Le}$ en fonction de $\alpha$', r'$\alpha$ en degres', u'$C_{Le}$',
@@ -137,13 +140,14 @@ def plot_polar(ac, filename=None):
 
     finesses = []
     for ms in mss:
+        ac.set_mass_and_static_margin(ac.m_k, ms)
         CLes = [CLe(alpha, ms) for alpha in alphas]
         CDes = [CDe(alpha, ms) for alpha in alphas]
 
         pentes = np.array(CLes) / np.array(CDes)
         finesse = round(max(pentes), 3)
         finesses.append(finesse)
-        print('finesse : {} pour ms = {}'.format(finesse, ms))
+        # print('finesse : {} pour ms = {}'.format(finesse, ms))
 
         plt.plot(CDes, CLes)
         ut.decorate(plt.gca(), 'Polaires équilibrées', r'$C_{De}$', u'$C_{Le}$',
@@ -155,12 +159,12 @@ def plot_polar(ac, filename=None):
 
 
 def seance_1(ac=dyn.Param_A321()):
-    # plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
-    # plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
-    # plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
-    # plot_dphr_e(ac, 'plots/{}_dPHR.png'.format(ac.get_name()))
-    # plot_dphr_e_vt(ac, 'plots/{}_dPHR vt augmenter de 50%.png'.format(ac.get_name()))
-    # plot_CLe(ac, 'plots/{}_CLe.png'.format(ac.get_name()))
+    plot_thrust(ac, 'plots/{}_thrust.png'.format(ac.get_name()))
+    plot_CL(ac, 'plots/{}_CL.png'.format(ac.get_name()))
+    plot_Cm(ac, 'plots/{}_Cm.png'.format(ac.get_name()))
+    plot_dphr_e(ac, 'plots/{}_dPHR.png'.format(ac.get_name()))
+    plot_dphr_e_vt(ac, 'plots/{}_dPHR vt augmenter de 50%.png'.format(ac.get_name()))
+    plot_CLe(ac, 'plots/{}_CLe.png'.format(ac.get_name()))
     plot_polar(ac, 'plots/{}_polar.png'.format(ac.get_name()))
 
 
