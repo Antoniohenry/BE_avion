@@ -30,7 +30,7 @@ def propulsion_model(X, U, P):
 
 
 def get_aero_coefs(va, alpha, q, dphr, P):
-    """ P est le paramètre avion, va est la vitesse air """
+    """ aircraft est le paramètre avion, va est la vitesse air """
     St_over_S = P.St / P.S
     CL0 = (St_over_S * 0.25 * P.CLat - P.CLa) * P.a0
     CLa = P.CLa + St_over_S * P.CLat * (1 - 0.25)
@@ -93,9 +93,9 @@ def trim(P, args=None):
         return [(F * ca - D) / P.m - P.g * sg, -(L + F * sa) / P.m + P.g * cg, M]
 
     p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]  # TODO list ou tableau ?
-    sol = scipy.optimize.root(err_func, p0, method='hybr')
-    dm, dth, alpha = sol.x
-    X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, 0, 0]
+    sol = scipy.optimize.root(err_func, p0, method='hybr')  # on recherche le 0 de air_func
+    dm, dth, alpha = sol.x  # deflection de l'élévateur, position manette gaz, alpha
+    X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, wy, wz]
     return X, U
 
 
