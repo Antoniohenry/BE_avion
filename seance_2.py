@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.integrate
@@ -19,7 +20,7 @@ def get_trim(aircraft, h, Ma, sm, km):
 
 
 def get_all_trims(aircraft, hs, Mas, sms, kms):
-    """Calcul de trims pour une serie de points de vol"""
+    """Calcul de trims pour une série de points de vol"""
     trims = np.zeros((len(hs), len(Mas), len(sms), len(kms), 3))
     for i, h in enumerate(hs):
         for j, Ma in enumerate(Mas):
@@ -46,17 +47,17 @@ def plot_all_trims(aircraft, hs, Mas, sms, kms, trims, filename=None):
             ax = plt.subplot(4, 3, 3 * m + 1)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 0]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 0]))
-            ut.decorate(ax, r'$\alpha \quad sm {} \quad km {}$'.format(sm, km), r'altitude', '$deg$',
+            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', r'$\alpha$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             ax = plt.subplot(4, 3, 3 * m + 2)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 1]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 1]))
-            ut.decorate(ax, r'$phr \quad sm {} \quad km {}$'.format(sm, km), r'altitude', '$deg$',
+            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', r'$\delta_{phr}$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             ax = plt.subplot(4, 3, 3 * m + 3)
             plt.plot(hs, trims[:, 0, k, l, 2] * 100)
             plt.plot(hs, trims[:, 1, k, l, 2] * 100)
-            ut.decorate(ax, r'$throttle \quad sm {} \quad km {}$'.format(sm, km), r'altitude', '$\%$',
+            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', 'throttle %',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             m = m + 1
     if filename is not None:
@@ -83,12 +84,12 @@ def get_CL_Fmax_trim(aircraft, h, Ma):
 
 
 def get_linearized_model(aircraft, h, Ma, sm, km):
-    """Calcul numérique du modèle tangent linéariseé pour un point de trim"""
+    """Calcul numérique du modèle tangent linéarisée pour un point de trim"""
     aircraft.set_mass_and_static_margin(km, sm)
     va = dyn.va_of_mach(Ma, h)
     Xe, Ue = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
-    A, B = ut.num_jacobian(Xe, Ue, aircraft, dyn.dyn)  # calcul du linéarisé tangent, A matrice 6x6
-    poles, vect_p = np.linalg.eig(A[dyn.s_va:, dyn.s_va:])  # in ne ressort que 4 poles
+    A, B = ut.num_jacobian(Xe, Ue, aircraft, dyn.dyn)  # calcul du linéarisé tangent, A est une matrice 6x6
+    poles, vect_p = np.linalg.eig(A[dyn.s_va:, dyn.s_va:])  # il ne ressort que 4 pôles
     return A, B, poles, vect_p
 
 
@@ -112,19 +113,48 @@ def plot_poles(aircraft, hs, Mas, sms, kms, filename=None):
     return fig
 
 
+def plot_trims(aircraft, sms, kms, filename=None):
+    machs = np.linspace(0.5, 0.8, 10)
+    hs = [3000, 10000]
+
+    def thrust(mach, h, ms, km):
+        aircraft.set_mass_and_static_margin(km, ms)
+        va = dyn.va_of_mach(mach, h)
+        X, U = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
+        return dyn.propulsion_model(X, U, aircraft)
+
+    figure = ut.prepare_fig(None, 'Poussée en fonction du mach {name}'.format(name=aircraft.name),
+                            margins=(0.05, 0.08, 0.98, 0.93, 0.2, 0.31))
+
+    compteur = 1
+    for i, km in enumerate(kms):
+        for j, ms in enumerate(sms):
+            ax = plt.subplot(2, 2, compteur)
+            compteur += 1
+            for h in hs:
+                thrusts = [thrust(mach, h, ms, km) for mach in machs]
+                plt.plot(machs, thrusts)
+                ut.decorate(ax, 'Poussée (mach), ms : {}, km : {}'.format(ms, km), 'Mach', 'Thrust',
+                            legend=['h : {}'.format(h) for h in hs])
+
+    if filename is not None:
+        plt.savefig(filename, dpi=160)
+    return figure
+
+
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
-    hs, Mas = np.linspace(3000, 11000, 2), [0.5, 0.8]
-    sms, kms = [0.2, 1.], [0.1, 0.9]
+    hs, Mas = np.linspace(3000, 11000, 2), [0.4, 0.8]
+    sms, kms = [0.2, 0.95], [0.1, 0.95]
 
     trims = get_all_trims(aircraft, hs, Mas, sms, kms)
 
-    plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/{}_trim.png'.format(aircraft.get_name()))
+    plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
 
-    # plot_trims(aircraft, filename='plots/{}_trim2.png'.format(aircraft.get_name()))
+    plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
 
     # plot_traj_trim(aircraft, 5000, 0.5, 0.2, 0.5)
 
-    # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/{}_poles_1.png'.format(aircraft.get_name()))
-    # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/{}_poles_2.png'.format(aircraft.get_name()))
+    # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'seance_2/plots/{}_poles_1.png'.format(aircraft.get_name()))
+    # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'seance_2/plots/{}_poles_2.png'.format(aircraft.get_name()))
     # plt.show()

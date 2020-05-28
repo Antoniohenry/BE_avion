@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-""" Dynamic model for a 3 Degrees Of Freedom longitudinal aircraft """
+"""
+Dynamic model for a 3 Degrees Of Freedom longitudinal aircraft
+P est le paramètre avion
+"""
 
 import math
 
@@ -14,7 +17,8 @@ s_y, s_h, s_va, s_a, s_th, s_q, s_size = range(0, 7)
 i_dm, i_dth, i_wy, i_wz, i_size = range(0, 5)
 
 
-def get_mach(va, T, k=1.4, Rs=287.05): return va / math.sqrt(k * Rs * T)
+def get_mach(va, T, k=1.4, Rs=287.05):
+    return va / math.sqrt(k * Rs * T)
 
 
 def va_of_mach(m, h, k=1.4, Rs=287.05):
@@ -30,7 +34,7 @@ def propulsion_model(X, U, P):
 
 
 def get_aero_coefs(va, alpha, q, dphr, P):
-    """ aircraft est le paramètre avion, va est la vitesse air """
+    """ P est le paramètre avion, va est la vitesse air """
     St_over_S = P.St / P.S
     CL0 = (St_over_S * 0.25 * P.CLat - P.CLa) * P.a0
     CLa = P.CLa + St_over_S * P.CLat * (1 - 0.25)
@@ -95,15 +99,17 @@ def trim(P, args=None):
     p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]  # TODO list ou tableau ?
     sol = scipy.optimize.root(err_func, p0, method='hybr')  # on recherche le 0 de air_func
     dm, dth, alpha = sol.x  # deflection de l'élévateur, position manette gaz, alpha
-    X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, wy, wz]
+    X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, wy, wz]  # les 0 correspondent à Y et q
     return X, U
 
 
 class Param:
+    """Param est uniquement parent des class Param_XXXX, elle ne peut être instanciée seule"""
     def __init__(self):
         self.g = 9.81
         self.m_k = 0.5
         self.ms = 0.3  # static margin
+
         # aero
         self.a0 = ut.rad_of_deg(-2.)  # zero lift angle
         self.CD0 = 0.025  # zero drag coefficient
@@ -131,7 +137,8 @@ class Param:
         self.Cmd = -self.Vt * self.CLat
         self.Cmq = self.Cmd * self.CLq
 
-    def get_name(self): return self.name.replace(" ", "_")
+    def get_name(self):
+        return self.name.replace(" ", "_")
 
 
 # class Param_A320(Param):

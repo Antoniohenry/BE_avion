@@ -161,11 +161,11 @@ def plot_polar(aircraft, filename=None):
 
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
-    plot_thrust(aircraft, 'plots/{}_thrust.png'.format(aircraft.get_name()))
-    plot_CL(aircraft, 'plots/{}_CL.png'.format(aircraft.get_name()))
-    plot_Cm(aircraft, 'plots/{}_Cm.png'.format(aircraft.get_name()))
-    plot_dphr_e(aircraft, 'plots/{}_dPHR.png'.format(aircraft.get_name()))
-    plot_dphr_e_vt(aircraft, 'plots/{}_dPHR vt augmenter de 50%.png'.format(aircraft.get_name()))
-    plot_CLe(aircraft, 'plots/{}_CLe.png'.format(aircraft.get_name()))
-    plot_polar(aircraft, 'plots/{}_polar.png'.format(aircraft.get_name()))
+    plot_thrust(aircraft, 'seance_1/plots/{}_thrust.png'.format(aircraft.get_name()))
+    plot_CL(aircraft, 'seance_1/plots/{}_CL.png'.format(aircraft.get_name()))
+    plot_Cm(aircraft, 'seance_1plots/{}_Cm.png'.format(aircraft.get_name()))
+    plot_dphr_e(aircraft, 'seance_1plots/{}_dPHR.png'.format(aircraft.get_name()))
+    plot_dphr_e_vt(aircraft, 'seance_1plots/{}_dPHR vt augmenter de 50%.png'.format(aircraft.get_name()))
+    plot_CLe(aircraft, 'seance_1plots/{}_CLe.png'.format(aircraft.get_name()))
+    plot_polar(aircraft, 'seance_1plots/{}_polar.png'.format(aircraft.get_name()))
     plt.show()
