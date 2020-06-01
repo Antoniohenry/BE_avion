@@ -71,18 +71,18 @@ def get_aero_forces_and_moments(X, U, P):
     return L, D, M
 
 
-def dyn(X, U, P):
-    """  Dynamic model, renvoie X point de l'équation d'état """
+def dyn(X, t, U, P):
+    """  Aircraft dynamic model, renvoie X point de l'équation d'état """
     Xdot = np.zeros(s_size)
     gamma_a = X[s_th] - X[s_a]  # air path angle
     cg, sg = math.cos(gamma_a), math.sin(gamma_a)
     ca, sa = math.cos(X[s_a]), math.sin(X[s_a])
     L, D, M = get_aero_forces_and_moments(X, U, P)
-    F = 2 * propulsion_model(X, U, P)
-    Xdot[s_y] = X[s_va] * cg - U[i_wy]  # 2 moteurs sur les avions étudiés
+    F = 2 * propulsion_model(X, U, P)  # 2 moteurs sur les avions étudiés
+    Xdot[s_y] = X[s_va] * cg - U[i_wy]
     Xdot[s_h] = X[s_va] * sg - U[i_wz]
-    Xdot[s_va] = (F * ca - D) / P.m - P.g * sg
-    Xdot[s_a] = X[s_q] - (L + F * sa) / P.m / X[s_va] + P.g / X[s_va] * cg
+    Xdot[s_va] = ((F * ca - D) / P.m) - (P.g * sg)
+    Xdot[s_a] = X[s_q] - ((L + F * sa) / (P.m * X[s_va])) + (P.g / X[s_va]) * cg
     Xdot[s_th] = X[s_q]
     Xdot[s_q] = M / P.Iyy
     return Xdot
@@ -91,7 +91,7 @@ def dyn(X, U, P):
 def trim(P, args=None):
     """
     En fonction du dictionnaire args contenant va, gamma et h \n
-    calcule la deflection de l'élévateur, la position manette gaz et l'incidence \n
+    calcule la deflection de l'élévateur, la position manette gaz et l'incidence A L'EQUILIBRE !  ! \n
     renvoie les résultats dans X et U
     """
     va = args.get('va', 100.)

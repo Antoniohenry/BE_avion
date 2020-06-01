@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.integrate
+import scipy.optimize
 
 import dynamic as dyn
 import utils as ut
@@ -47,17 +50,19 @@ def plot_all_trims(aircraft, hs, Mas, sms, kms, trims, filename=None):
             ax = plt.subplot(4, 3, 3 * m + 1)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 0]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 0]))
-            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', r'$\alpha$ deg',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', r'$\alpha$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             ax = plt.subplot(4, 3, 3 * m + 2)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 1]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 1]))
-            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', r'$\delta_{phr}$ deg',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', r'$\delta_{phr}$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
+
+            # TODO appliquer une correction du mach en fonction de l'altitude
             ax = plt.subplot(4, 3, 3 * m + 3)
             plt.plot(hs, trims[:, 0, k, l, 2] * 100)
             plt.plot(hs, trims[:, 1, k, l, 2] * 100)
-            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', 'throttle %',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', 'throttle %',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             m = m + 1
     if filename is not None:
@@ -70,21 +75,45 @@ def plot_traj_trim(aircraft, h, Ma, sm, km):
     aircraft.set_mass_and_static_margin(km, sm)
     va = dyn.va_of_mach(Ma, h)
     Xe, Ue = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
-    time = np.arange(0., 100, 0.5)
+    time = np.arange(0, 100, 0.1)
+    # X = scipy.integrate.solve_ivp(dyn.dyn_t,  Xe, (0, 100), args=(Ue, aircraft) )
     X = scipy.integrate.odeint(dyn.dyn, Xe, time, args=(Ue, aircraft))  # integration numérique de dyn.dyn
     dyn.plot(time, X)
+
+
+def plot_traj_trim_antoine(aircraft, h, Ma, sm, km):
+    aircraft.set_mass_and_static_margin(km, sm)
+    va = dyn.va_of_mach(Ma, h)
+
+    X, U = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})  # X et U représente l'équilibre du système
+
+    # TODO à virer pour répondre à la question
+    U[1] *= 1.01  # augmentation de la vitesse de 1% par rapport à l'équilibre (le point de départ)
+
+    X = np.array(X)
+    dt = 0.1
+    time = np.arange(0, 2500, dt)  # TODO sur 100 secondes pour répondre à la question
+
+    list_X = []
+    t = 0
+    for _ in time:
+        Xdot = dyn.dyn(X, t, U, aircraft)
+        X += Xdot * dt
+        list_X.append(list(X))
+
+    dyn.plot(time, np.array(list_X))
 
 
 def get_CL_Fmax_trim(aircraft, h, Ma):
     p, rho, T = ut.isa(h)
     va = dyn.va_of_mach(Ma, h)
     pdyn = 0.5 * rho * va ** 2
-    return aircraft.m * aircraft.g / (pdyn * aircraft.S), \
-           dyn.propulsion_model([0, h, va, 0, 0, 0], [0, 1, 0, 0], aircraft)
+    return aircraft.m * aircraft.g / (pdyn * aircraft.S), 2 * dyn.propulsion_model([0, h, va, 0, 0, 0], [0, 1, 0, 0],
+                                                                                   aircraft)
 
 
 def get_linearized_model(aircraft, h, Ma, sm, km):
-    """Calcul numérique du modèle tangent linéarisée pour un point de trim"""
+    """Calcul numérique du modèle tangent linéarisé pour un point de trim"""
     aircraft.set_mass_and_static_margin(km, sm)
     va = dyn.va_of_mach(Ma, h)
     Xe, Ue = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
@@ -108,7 +137,7 @@ def plot_poles(aircraft, hs, Mas, sms, kms, filename=None):
                     plt.plot(poles.real, poles.imag, '*', markersize=20, alpha=1.)
                     ut.decorate(ax, r'$h:{}m \quad  Ma:{} Km:{}$'.format(h, Ma, km),
                                 legend=['ms: {}'.format(sm) for sm in sms])
-    if filename is None:
+    if filename is not None:
         plt.savefig(filename, dpi=160)
     return fig
 
@@ -142,19 +171,61 @@ def plot_trims(aircraft, sms, kms, filename=None):
     return figure
 
 
+def get_CL_from_trim(aircraft, h, Ma, sm, km):
+    aircraft.set_mass_and_static_margin(km, sm)
+
+    p, rho, T = ut.isa(h)
+    va = dyn.va_of_mach(Ma, h)
+    pdyn = 0.5 * rho * va ** 2
+
+    Cl = aircraft.m * aircraft.g / (pdyn * aircraft.S)
+
+    def CDe(alpha):
+        return dyn.get_aero_coefs(1, alpha, 0, dphr(alpha), aircraft)[1]
+
+    def dphr(alpha):
+        return (- aircraft.Cm0 + sm * aircraft.CLa * (alpha - aircraft.a0)) / aircraft.Cmd
+
+    def CLe(alpha):
+        return dyn.get_aero_coefs(1, alpha, 0, dphr(alpha), aircraft)[0] - Cl
+
+    alpha = scipy.optimize.root_scalar(CLe, bracket=[ut.rad_of_deg(-10), ut.rad_of_deg(20)], method='brentq').root
+
+    CD = CDe(alpha)
+    dphr = dphr(alpha)
+
+    def get_dth_value(aircraft, h, Ma, CD):
+        p, rho, T = ut.isa(h)
+        rho0 = 1.225
+        va = dyn.va_of_mach(Ma, h)
+        F = 0.5 * rho * va ** 2 * CD * aircraft.S
+        return F / (aircraft.F0 * math.pow(rho / rho0, 0.6) * (0.568 + 0.25 * math.pow(1.2 - Ma, 3)))
+
+    throttle = get_dth_value(aircraft, h, Ma, CD) / 2
+
+    return 'throttle : {:.1f}%, alpha : {:.1f} deg, phr : {:.1f} deg'.format(throttle * 100, ut.deg_of_rad(alpha),
+                                                                             ut.deg_of_rad(dphr))
+
+
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
     hs, Mas = np.linspace(3000, 11000, 20), [0.4, 0.8]
     sms, kms = [0.2, 0.95], [0.1, 0.95]
 
     trims = get_all_trims(aircraft, hs, Mas, sms, kms)
-
     plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
-
     plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
 
-    # plot_traj_trim(aircraft, 5000, 0.5, 0.2, 0.5)
+    """notre point de trim perso"""
+    sm, km = 0.2, 0.1
+    Ma, h = 0.8, 3000
 
-    # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'seance_2/plots/{}_poles_1.png'.format(aircraft.get_name()))
-    # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'seance_2/plots/{}_poles_2.png'.format(aircraft.get_name()))
+    print(get_CL_from_trim(aircraft, h, Ma, sm, km))
+
+    plot_traj_trim_antoine(aircraft, 11600, Ma, sm, km)
+    # plot_traj_trim(aircraft, 3200, Ma, sm, km)
+
+    hs, Mas = [3000, 11000], [0.4, 0.8]
+    plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/seance_2/{}_poles_1.png'.format(aircraft.get_name()))
+    plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/seance_2/{}_poles_2.png'.format(aircraft.get_name()))
     plt.show()
