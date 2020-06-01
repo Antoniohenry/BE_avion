@@ -43,21 +43,21 @@ def plot_all_trims(aircraft, hs, Mas, sms, kms, trims, filename=None):
                 for j, Ma in enumerate(Mas):
                     alpha, dphr, dth = trims[i, j, k, l]
                     fmt = 'alt {:5.0f}, Ma {:.1f}, sm {:.1f}, km {:.1f} -> alpha {:5.2f} deg, phr {:-5.1f} deg, throttle {:.1f} %'
-                    print(fmt.format(h, Ma, sm, km, ut.deg_of_rad(alpha), ut.deg_of_rad(dphr), 100 * dth))
+                    # print(fmt.format(h, Ma, sm, km, ut.deg_of_rad(alpha), ut.deg_of_rad(dphr), 100 * dth))
             ax = plt.subplot(4, 3, 3 * m + 1)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 0]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 0]))
-            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', r'$\alpha$ deg',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', r'$\alpha$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             ax = plt.subplot(4, 3, 3 * m + 2)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 1]))
             plt.plot(hs, ut.deg_of_rad(trims[:, 1, k, l, 1]))
-            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', r'$\delta_{phr}$ deg',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', r'$\delta_{phr}$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             ax = plt.subplot(4, 3, 3 * m + 3)
             plt.plot(hs, trims[:, 0, k, l, 2] * 100)
             plt.plot(hs, trims[:, 1, k, l, 2] * 100)
-            ut.decorate(ax, r'$sm {} \quad km {}$'.format(sm, km), r'altitude', 'throttle %',
+            ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude', 'throttle %',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
             m = m + 1
     if filename is not None:
@@ -121,7 +121,7 @@ def plot_trims(aircraft, sms, kms, filename=None):
         aircraft.set_mass_and_static_margin(km, ms)
         va = dyn.va_of_mach(mach, h)
         X, U = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
-        return dyn.propulsion_model(X, U, aircraft)
+        return 2 * dyn.propulsion_model(X, U, aircraft)
 
     figure = ut.prepare_fig(None, 'Poussée en fonction du mach {name}'.format(name=aircraft.name),
                             margins=(0.05, 0.08, 0.98, 0.93, 0.2, 0.31))
@@ -134,7 +134,7 @@ def plot_trims(aircraft, sms, kms, filename=None):
             for h in hs:
                 thrusts = [thrust(mach, h, ms, km) for mach in machs]
                 plt.plot(machs, thrusts)
-                ut.decorate(ax, 'Poussée (mach), ms : {}, km : {}'.format(ms, km), 'Mach', 'Thrust',
+                ut.decorate(ax, 'Poussée f(mach), ms : {}, km : {}'.format(ms, km), 'Mach', 'Thrust',
                             legend=['h : {}'.format(h) for h in hs])
 
     if filename is not None:
@@ -144,7 +144,7 @@ def plot_trims(aircraft, sms, kms, filename=None):
 
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
-    hs, Mas = np.linspace(3000, 11000, 2), [0.4, 0.8]
+    hs, Mas = np.linspace(3000, 11000, 20), [0.4, 0.8]
     sms, kms = [0.2, 0.95], [0.1, 0.95]
 
     trims = get_all_trims(aircraft, hs, Mas, sms, kms)
