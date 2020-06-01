@@ -13,7 +13,11 @@ import scipy.optimize
 import utils as ut
 
 ''' naming of state and input components '''
+# voici ls composantes de X vecteur d'état en unité internationale
+#  pos horizontale, pos verticale, vit air, alpha (incidence), theta (assiette), q vit de tangage, size ??
 s_y, s_h, s_va, s_a, s_th, s_q, s_size = range(0, 7)
+# voici les composantes du vecteur de commande
+# deflection de l'élévateur, position manette gaz, rotation sur l'axe Y, rotation sur l'axe Z
 i_dm, i_dth, i_wy, i_wz, i_size = range(0, 5)
 
 
@@ -22,11 +26,16 @@ def get_mach(va, T, k=1.4, Rs=287.05):
 
 
 def va_of_mach(m, h, k=1.4, Rs=287.05):
+    """m est la vitesse en mach"""
     p, rho, T = ut.isa(h)
     return m * math.sqrt(k * Rs * T)
 
 
 def propulsion_model(X, U, P):
+    """renvoie la poussée d'UN moteur, dépend : \n
+     de la poussée max au sol (F0) \n
+     de la densité (rho) \n
+     de la commande des gaz U[i_dth] compris entre 0 et 1"""
     p, rho, T = ut.isa(X[s_h])
     rho0 = 1.225
     mach = get_mach(X[s_va], T)
@@ -63,14 +72,14 @@ def get_aero_forces_and_moments(X, U, P):
 
 
 def dyn(X, U, P):
-    """  Dynamic model """
+    """  Dynamic model, renvoie X point de l'équation d'état """
     Xdot = np.zeros(s_size)
     gamma_a = X[s_th] - X[s_a]  # air path angle
     cg, sg = math.cos(gamma_a), math.sin(gamma_a)
     ca, sa = math.cos(X[s_a]), math.sin(X[s_a])
     L, D, M = get_aero_forces_and_moments(X, U, P)
-    F = propulsion_model(X, U, P)
-    Xdot[s_y] = X[s_va] * cg - U[i_wy]
+    F = 2 * propulsion_model(X, U, P)
+    Xdot[s_y] = X[s_va] * cg - U[i_wy]  # 2 moteurs sur les avions étudiés
     Xdot[s_h] = X[s_va] * sg - U[i_wz]
     Xdot[s_va] = (F * ca - D) / P.m - P.g * sg
     Xdot[s_a] = X[s_q] - (L + F * sa) / P.m / X[s_va] + P.g / X[s_va] * cg
@@ -80,6 +89,11 @@ def dyn(X, U, P):
 
 
 def trim(P, args=None):
+    """
+    En fonction du dictionnaire args contenant va, gamma et h \n
+    calcule la deflection de l'élévateur, la position manette gaz et l'incidence \n
+    renvoie les résultats dans X et U
+    """
     va = args.get('va', 100.)
     gamma = args.get('gamma', 0.)
     h = args.get('h', 5000.)
@@ -91,13 +105,14 @@ def trim(P, args=None):
         U = np.array([dm, dth, wy, wz])
         X = np.array([0., h, va, alpha, theta, 0])
         L, D, M = get_aero_forces_and_moments(X, U, P)
-        F = propulsion_model(X, U, P)
+        F = 2 * propulsion_model(X, U, P)
         cg, sg = math.cos(gamma), math.sin(gamma)
         ca, sa = math.cos(alpha), math.sin(alpha)
+        #  équation de trainée, équation de portance, moment de tangage
         return [(F * ca - D) / P.m - P.g * sg, -(L + F * sa) / P.m + P.g * cg, M]
 
-    p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]  # TODO list ou tableau ?
-    sol = scipy.optimize.root(err_func, p0, method='hybr')  # on recherche le 0 de air_func
+    p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]
+    sol = scipy.optimize.root(err_func, np.array(p0), method='hybr')  # on recherche le 0 de air_func
     dm, dth, alpha = sol.x  # deflection de l'élévateur, position manette gaz, alpha
     X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, wy, wz]  # les 0 correspondent à Y et q
     return X, U

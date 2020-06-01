@@ -42,7 +42,7 @@ def plot_all_trims(aircraft, hs, Mas, sms, kms, trims, filename=None):
             for i, h in enumerate(hs):
                 for j, Ma in enumerate(Mas):
                     alpha, dphr, dth = trims[i, j, k, l]
-                    fmt = 'alt {:5.0f} Ma {:.1f} sm {:.1f} km {:.1f} -> alpha {:5.2f} deg phr {:-5.1f} deg throttle {:.1f} %'
+                    fmt = 'alt {:5.0f}, Ma {:.1f}, sm {:.1f}, km {:.1f} -> alpha {:5.2f} deg, phr {:-5.1f} deg, throttle {:.1f} %'
                     print(fmt.format(h, Ma, sm, km, ut.deg_of_rad(alpha), ut.deg_of_rad(dphr), 100 * dth))
             ax = plt.subplot(4, 3, 3 * m + 1)
             plt.plot(hs, ut.deg_of_rad(trims[:, 0, k, l, 0]))
@@ -79,8 +79,8 @@ def get_CL_Fmax_trim(aircraft, h, Ma):
     p, rho, T = ut.isa(h)
     va = dyn.va_of_mach(Ma, h)
     pdyn = 0.5 * rho * va ** 2
-    return aircraft.m * aircraft.g / (pdyn * aircraft.S), dyn.propulsion_model([0, h, va, 0, 0, 0], [0, 1, 0, 0],
-                                                                               aircraft)
+    return aircraft.m * aircraft.g / (pdyn * aircraft.S), \
+           dyn.propulsion_model([0, h, va, 0, 0, 0], [0, 1, 0, 0], aircraft)
 
 
 def get_linearized_model(aircraft, h, Ma, sm, km):
@@ -157,4 +157,4 @@ if __name__ == "__main__":
 
     # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'seance_2/plots/{}_poles_1.png'.format(aircraft.get_name()))
     # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'seance_2/plots/{}_poles_2.png'.format(aircraft.get_name()))
-    # plt.show()
+    plt.show()

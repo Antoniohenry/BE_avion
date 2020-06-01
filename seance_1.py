@@ -18,7 +18,7 @@ def plot_thrust(aircraft, filename=None):
     for h in hs:
         thrusts = [dyn.propulsion_model([0, h, dyn.va_of_mach(mach, h), 0, 0, 0], U, aircraft) for mach in machs]
         plt.plot(machs, thrusts)
-    ut.decorate(plt.gca(), u'Poussée maximum {}'.format(aircraft.eng_name), 'Mach', '$N$',
+    ut.decorate(plt.gca(), u'Poussée maximum pour un moteur {}'.format(aircraft.eng_name), 'Mach', '$N$',
                 ['{} m'.format(h) for h in hs])
     if filename is not None:
         plt.savefig(filename, dpi=160)
@@ -60,23 +60,24 @@ def plot_Cm(aircraft, filename=None):
 
 
 def plot_dphr_e_vt(aircraft, filename=None):
-    aircraft.Vt = aircraft.Vt * 1.5
     mss = [-0.1, 0., 0.2, 1.]
 
     def dphr(alpha, ms):
         return (- aircraft.Cm0 + ms * aircraft.CLa * (alpha - aircraft.a0)) / aircraft.Cmd
 
-    figure = ut.prepare_fig(None,
-                            r'$\delta_{phr}$ en fonction de $\alpha$ avec $V_{t} + 50\%$ {name}'.format(phr='phr', t='t'
-                                                                                                        ,
-                                                                                                        name=aircraft.name))
+    figure = ut.prepare_fig(None, r'$\delta_{phr}$ en fonction de '
+                                  r'$\alpha$ avec $V_{t} + 50\%$ {name}'.format(phr='phr', t='t', name=aircraft.name))
     for ms in mss:
         aircraft.set_mass_and_static_margin(aircraft.m_k, ms)
+
+        aircraft.Vt = aircraft.Vt * 1.5
+        aircraft.Cmd = -aircraft.Vt * aircraft.CLat
+        aircraft.Cmq = aircraft.Cmd * aircraft.CLq
+
         dphrs = [dphr(alpha, ms) for alpha in alphas]
         plt.plot(ut.deg_of_rad(alphas), dphrs)
         ut.decorate(plt.gca(), r'$\delta_{phr}$ en fonction de $\alpha$, $V_{t} + 50\%$', r'$\alpha$ en degres',
-                    u'$\delta_{phr}$',
-                    ['$ms =  ${: .1f}'.format(ms) for ms in mss])
+                    r'$\delta_{phr}$', ['$ms =  ${: .1f}'.format(ms) for ms in mss])
     if filename is not None:
         plt.savefig(filename, dpi=160)
     return figure
@@ -161,11 +162,11 @@ def plot_polar(aircraft, filename=None):
 
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
-    plot_thrust(aircraft, 'seance_1/plots/{}_thrust.png'.format(aircraft.get_name()))
-    plot_CL(aircraft, 'seance_1/plots/{}_CL.png'.format(aircraft.get_name()))
-    plot_Cm(aircraft, 'seance_1plots/{}_Cm.png'.format(aircraft.get_name()))
-    plot_dphr_e(aircraft, 'seance_1plots/{}_dPHR.png'.format(aircraft.get_name()))
-    plot_dphr_e_vt(aircraft, 'seance_1plots/{}_dPHR vt augmenter de 50%.png'.format(aircraft.get_name()))
-    plot_CLe(aircraft, 'seance_1plots/{}_CLe.png'.format(aircraft.get_name()))
-    plot_polar(aircraft, 'seance_1plots/{}_polar.png'.format(aircraft.get_name()))
+    plot_thrust(aircraft, 'plots/seance_1/{}_thrust.png'.format(aircraft.get_name()))
+    plot_CL(aircraft, 'plots/seance_1/{}_CL.png'.format(aircraft.get_name()))
+    plot_Cm(aircraft, 'plots/seance_1/{}_Cm.png'.format(aircraft.get_name()))
+    plot_dphr_e(aircraft, 'plots/seance_1/{}_dPHR.png'.format(aircraft.get_name()))
+    plot_dphr_e_vt(aircraft, 'plots/seance_1/{}_dPHR vt augmenter de 50%.png'.format(aircraft.get_name()))
+    plot_CLe(aircraft, 'plots/seance_1/{}_CLe.png'.format(aircraft.get_name()))
+    plot_polar(aircraft, 'plots/seance_1/{}_polar.png'.format(aircraft.get_name()))
     plt.show()
