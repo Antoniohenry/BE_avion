@@ -75,7 +75,7 @@ def plot_traj_trim(aircraft, h, Ma, sm, km):
     aircraft.set_mass_and_static_margin(km, sm)
     va = dyn.va_of_mach(Ma, h)
     Xe, Ue = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
-    time = np.arange(0, 100, 0.1)
+    time = np.arange(0, 2500, 0.1)
     # X = scipy.integrate.solve_ivp(dyn.dyn_t,  Xe, (0, 100), args=(Ue, aircraft) )
     X = scipy.integrate.odeint(dyn.dyn, Xe, time, args=(Ue, aircraft))  # integration numérique de dyn.dyn
     dyn.plot(time, X)
@@ -88,11 +88,11 @@ def plot_traj_trim_antoine(aircraft, h, Ma, sm, km):
     X, U = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})  # X et U représente l'équilibre du système
 
     # TODO à virer pour répondre à la question
-    U[1] *= 1.01  # augmentation de la vitesse de 1% par rapport à l'équilibre (le point de départ)
+    X[1] *= 1.05  # augmentation de la vitesse de 1% par rapport à l'équilibre (le point de départ)
 
     X = np.array(X)
     dt = 0.1
-    time = np.arange(0, 2500, dt)  # TODO sur 100 secondes pour répondre à la question
+    time = np.arange(0, 1000, dt)  # TODO sur 100 secondes pour répondre à la question
 
     list_X = []
     t = 0
@@ -134,7 +134,7 @@ def plot_poles(aircraft, hs, Mas, sms, kms, filename=None):
                 for l, km in enumerate(kms):
                     A, B, poles, vect_p = get_linearized_model(aircraft, h, Ma, sm, km)
                     print('{}'.format(poles))
-                    plt.plot(poles.real, poles.imag, '*', markersize=20, alpha=1.)
+                    plt.plot(poles.real, poles.imag, '.', markersize=20, alpha=1.)
                     ut.decorate(ax, r'$h:{}m \quad  Ma:{} Km:{}$'.format(h, Ma, km),
                                 legend=['ms: {}'.format(sm) for sm in sms])
     if filename is not None:
@@ -207,25 +207,45 @@ def get_CL_from_trim(aircraft, h, Ma, sm, km):
                                                                              ut.deg_of_rad(dphr))
 
 
+def plot_poles_antoine(aircraft, hs, Mas, sm, km, filename=None):
+    fig = ut.prepare_fig(window_title='Poles {} (km:{})'.format(aircraft.name, kms), figsize=(20.48, 10.24))
+    for Ma in Mas:
+        for h in hs:
+            poles = get_linearized_model(aircraft, h, Ma, sm, km)[2]
+            plt.plot(poles.real, poles.imag, '.', markersize=7, alpha=1.)
+            ut.decorate(plt.gca(), 'sm : {}, km : {}'.format(sm, km),
+                        legend=['Ma: {}, h : {}'.format(Mas[0], h) for h in hs] + ['Ma: {}, h : {}'.format(Mas[1], h)
+                                                                                   for h in hs])
+
+    if filename is not None:
+        plt.savefig(filename, dpi=250)
+    return fig
+
+
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
     hs, Mas = np.linspace(3000, 11000, 20), [0.4, 0.8]
     sms, kms = [0.2, 0.95], [0.1, 0.95]
 
-    trims = get_all_trims(aircraft, hs, Mas, sms, kms)
-    plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
-    plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
+    # trims = get_all_trims(aircraft, hs, Mas, sms, kms)
+    # plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
+    # plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
 
     """notre point de trim perso"""
-    sm, km = 0.2, 0.1
+    sm, km = sms[0], kms[1]
     Ma, h = 0.8, 3000
 
-    print(get_CL_from_trim(aircraft, h, Ma, sm, km))
+    # print(get_CL_from_trim(aircraft, h, Ma, sm, km))
 
-    plot_traj_trim_antoine(aircraft, 11600, Ma, sm, km)
+    # plot_traj_trim_antoine(aircraft, 11600, Ma, sm, km)
     # plot_traj_trim(aircraft, 3200, Ma, sm, km)
 
     hs, Mas = [3000, 11000], [0.4, 0.8]
-    plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/seance_2/{}_poles_1.png'.format(aircraft.get_name()))
-    plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/seance_2/{}_poles_2.png'.format(aircraft.get_name()))
-    plt.show()
+    # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/seance_2/{}_poles_1.png'.format(aircraft.get_name()))
+    # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/seance_2/{}_poles_2.png'.format(aircraft.get_name()))
+    # plt.show()
+
+    for sm in sms:
+        for km in kms:
+            plot_poles_antoine(aircraft, hs, Mas, sm, km,
+                               'plots/seance_2/poles_antoine sm {}, km {}.png'.format(sm, km))
