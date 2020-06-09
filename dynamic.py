@@ -54,10 +54,10 @@ def get_aero_coefs(va, alpha, q, dphr, P):
         CDi = P.ki * CL ** 2  # induced drag coefficient
     else:
         CLw = P.CLa * (alpha - P.a0)
-        alphat = alpha - 0.25 * (alpha - P.a0) + dphr + P.Cmq * P.lt / va * q
+        alphat = alpha - 0.25 * (alpha - P.a0) + dphr + (P.CLq * q * P.lt) / va
         CLt = P.CLat * alphat
-        CDi = CLw ** 2 / (math.pi * P._lambda) + St_over_S * CLt ** 2 / (
-                math.pi * P._lambdat) + St_over_S * CLw * CLt / (math.pi * P._lambda)
+        CDi = (CLw ** 2) / (math.pi * P._lambda) + (St_over_S * CLt ** 2) / (
+                math.pi * P._lambdat) + (St_over_S * CLw * CLt) / (math.pi * P._lambda)
     CD = P.CD0 + CDi
     Cm = P.Cm0 - P.ms * P.CLa * (alpha - P.a0) + P.Cmq * P.lt / va * q + P.Cmd * dphr
     return CL, CD, Cm
@@ -112,7 +112,7 @@ def trim(P, args=None):
         return [(F * ca - D) / P.m - P.g * sg, -(L + F * sa) / P.m + P.g * cg, M]
 
     p0 = [ut.rad_of_deg(0.), 0.5, ut.rad_of_deg(1.)]
-    sol = scipy.optimize.root(err_func, np.array(p0), method='hybr')  # on recherche le 0 de air_func
+    sol = scipy.optimize.root(err_func, np.array(p0), method='hybr')  # on recherche le 0 de err_func
     dm, dth, alpha = sol.x  # deflection de l'élévateur, position manette gaz, alpha
     X, U = [0, h, va, alpha, gamma + alpha, 0], [dm, dth, wy, wz]  # les 0 correspondent à Y et q
     return X, U

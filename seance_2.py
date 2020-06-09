@@ -143,8 +143,8 @@ def plot_poles(aircraft, hs, Mas, sms, kms, filename=None):
 
 
 def plot_trims(aircraft, sms, kms, filename=None):
-    machs = np.linspace(0.5, 0.8, 10)
-    hs = [3000, 10000]
+    machs = np.linspace(0.4, 0.8, 10)
+    hs = [3000, 11000]
 
     def thrust(mach, h, ms, km):
         aircraft.set_mass_and_static_margin(km, ms)
@@ -222,14 +222,53 @@ def plot_poles_antoine(aircraft, hs, Mas, sm, km, filename=None):
     return fig
 
 
+def plot_trim_ben(aircraft, hs, Mas, kms, sms):
+    trims = get_all_trims(aircraft, hs, Mas, sms, kms)
+    for j, Ma in enumerate(Mas):
+        filename = 'plots/seance_2/Ma = {}.png'.format(Ma)
+        fig = ut.prepare_fig(window_title='Ma = {}'.format(Ma), figsize=(20.48, 10.24))
+        for k, sm in enumerate(sms):
+            for l, km in enumerate(kms):
+                thrusts = []
+                alphas = []
+                dphrs = []
+                for i, h in enumerate(hs):
+                    alpha, dphr, dth = trims[i, j, k, l]
+                    thrusts.append(dth)
+                    alphas.append(ut.deg_of_rad(alpha))
+                    dphrs.append(ut.deg_of_rad(dphr))
+
+                ax = plt.subplot(3, 1, 1)
+                plt.plot(hs, thrusts)
+                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'thrust',
+                            legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
+                                   ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
+
+                ax = plt.subplot(3, 1, 2)
+                plt.plot(hs, alphas)
+                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'alpha',
+                            legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
+                                   ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
+
+                ax = plt.subplot(3, 1, 3)
+                plt.plot(hs, dphrs)
+                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'dphr',
+                            legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
+                                   ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
+
+        if filename is not None:
+            plt.savefig(filename, dpi=250)
+    return fig
+
+
 if __name__ == "__main__":
     aircraft = dyn.Param_A321()
-    hs, Mas = np.linspace(3000, 11000, 20), [0.4, 0.8]
+    hs, Mas = np.linspace(3000, 13000, 20), [0.4, 0.8]
     sms, kms = [0.2, 0.95], [0.1, 0.95]
 
-    # trims = get_all_trims(aircraft, hs, Mas, sms, kms)
+    trims = get_all_trims(aircraft, hs, Mas, sms, kms)
     # plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
-    # plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
+    plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
 
     """notre point de trim perso"""
     sm, km = sms[0], kms[1]
@@ -240,12 +279,14 @@ if __name__ == "__main__":
     # plot_traj_trim_antoine(aircraft, 11600, Ma, sm, km)
     # plot_traj_trim(aircraft, 3200, Ma, sm, km)
 
-    hs, Mas = [3000, 11000], [0.4, 0.8]
+    # hs, Mas = [3000, 11000], [0.4, 0.8]
     # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/seance_2/{}_poles_1.png'.format(aircraft.get_name()))
     # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/seance_2/{}_poles_2.png'.format(aircraft.get_name()))
     # plt.show()
 
-    for sm in sms:
-        for km in kms:
-            plot_poles_antoine(aircraft, hs, Mas, sm, km,
-                               'plots/seance_2/poles_antoine sm {}, km {}.png'.format(sm, km))
+    # for sm in sms:
+    #     for km in kms:
+    #         plot_poles_antoine(aircraft, hs, Mas, sm, km,
+    #                            'plots/seance_2/poles_antoine sm {}, km {}.png'.format(sm, km))
+
+    plot_trim_ben(aircraft, hs, Mas, kms, sms)
