@@ -12,3 +12,6 @@ https://docs.google.com/document/d/1FQ2R_USQzVIUU3gAULH7Yr5_GzuPM2p8o6Parkkms5I/
 
 # variable
 P est aircraft sont instanciés de la class Param_XXXX(Param)
+
+# TODO 
+Tracer les courbes poussée utile, poussée nécessaire en fonction de la vitesse pour différentes altitudes pour visualiser le 2nd régime 

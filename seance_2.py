@@ -58,7 +58,6 @@ def plot_all_trims(aircraft, hs, Mas, sms, kms, trims, filename=None):
             ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', r'$\delta_{phr}$ deg',
                         legend=['Mach {}'.format(Ma) for Ma in Mas])
 
-            # TODO appliquer une correction du mach en fonction de l'altitude
             ax = plt.subplot(4, 3, 3 * m + 3)
             plt.plot(hs, trims[:, 0, k, l, 2] * 100)
             plt.plot(hs, trims[:, 1, k, l, 2] * 100)
