@@ -103,6 +103,7 @@ def plot_traj_trim_antoine(aircraft, h, Ma, sm, km):
     dyn.plot(time, np.array(list_X))
 
 
+
 def get_CL_Fmax_trim(aircraft, h, Ma):
     p, rho, T = ut.isa(h)
     va = dyn.va_of_mach(Ma, h)
@@ -149,10 +150,15 @@ def plot_trims(aircraft, sms, kms, filename=None):
         aircraft.set_mass_and_static_margin(km, ms)
         va = dyn.va_of_mach(mach, h)
         X, U = dyn.trim(aircraft, {'va': va, 'h': h, 'gamma': 0})
-        return 2 * dyn.propulsion_model(X, U, aircraft)
+        alpha = X[3]
+        q = 0
+        dphr = U[0]
+        CL = dyn.get_aero_coefs(va, alpha, q, dphr, aircraft)[0]
+        return 2 * dyn.propulsion_model(X, U, aircraft), CL
 
     figure = ut.prepare_fig(None, 'Poussée en fonction du mach {name}'.format(name=aircraft.name),
                             margins=(0.05, 0.08, 0.98, 0.93, 0.2, 0.31))
+    plt.title('Poussée utile en fonction du mach')
 
     compteur = 1
     for i, km in enumerate(kms):
@@ -160,10 +166,18 @@ def plot_trims(aircraft, sms, kms, filename=None):
             ax = plt.subplot(2, 2, compteur)
             compteur += 1
             for h in hs:
-                thrusts = [thrust(mach, h, ms, km) for mach in machs]
-                plt.plot(machs, thrusts)
-                ut.decorate(ax, 'Poussée f(mach), ms : {}, km : {}'.format(ms, km), 'Mach', 'Thrust',
+                machs_plot = []
+                thrusts = []
+                for mach in machs:
+                    poussee, CL = thrust(mach, h, ms, km)
+                    print(CL)
+                    if CL < 1.3:  # https://www.hkw-aero.fr/pdf/MK_Czmax_avions_de_transport.pdf
+                        machs_plot.append(mach)
+                        thrusts.append(poussee)
+                plt.plot(machs_plot, thrusts)
+                ut.decorate(ax, 'ms : {}, km : {}'.format(ms, km), 'Mach', 'Thrust',
                             legend=['h : {}'.format(h) for h in hs])
+    plt.legend()
 
     if filename is not None:
         plt.savefig(filename, dpi=160)
@@ -207,11 +221,11 @@ def get_CL_from_trim(aircraft, h, Ma, sm, km):
 
 
 def plot_poles_antoine(aircraft, hs, Mas, sm, km, filename=None):
-    fig = ut.prepare_fig(window_title='Poles {} (km:{})'.format(aircraft.name, kms), figsize=(20.48, 10.24))
+    fig = ut.prepare_fig(window_title='Poles {} (km:{})'.format(aircraft.name, kms), figsize=(14.33, 7.16))
     for Ma in Mas:
         for h in hs:
             poles = get_linearized_model(aircraft, h, Ma, sm, km)[2]
-            plt.plot(poles.real, poles.imag, '.', markersize=7, alpha=1.)
+            plt.plot(poles.real, poles.imag, '.', markersize=12, alpha=1.)
             ut.decorate(plt.gca(), 'sm : {}, km : {}'.format(sm, km),
                         legend=['Ma: {}, h : {}'.format(Mas[0], h) for h in hs] + ['Ma: {}, h : {}'.format(Mas[1], h)
                                                                                    for h in hs])
@@ -233,30 +247,77 @@ def plot_trim_ben(aircraft, hs, Mas, kms, sms):
                 dphrs = []
                 for i, h in enumerate(hs):
                     alpha, dphr, dth = trims[i, j, k, l]
-                    thrusts.append(dth)
+                    thrusts.append(dth * 100)
                     alphas.append(ut.deg_of_rad(alpha))
                     dphrs.append(ut.deg_of_rad(dphr))
 
-                ax = plt.subplot(3, 1, 1)
+                # ax = plt.subplot(3, 1, 1)
+                ax = plt.gca()
                 plt.plot(hs, thrusts)
-                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'thrust',
+                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'throttle',
                             legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
                                    ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
 
-                ax = plt.subplot(3, 1, 2)
-                plt.plot(hs, alphas)
-                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'alpha',
-                            legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
-                                   ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
-
-                ax = plt.subplot(3, 1, 3)
-                plt.plot(hs, dphrs)
-                ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'dphr',
-                            legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
-                                   ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
+                # ax = plt.subplot(3, 1, 2)
+                # plt.plot(hs, alphas)
+                # ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'alpha',
+                #             legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
+                #                    ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
+                #
+                # ax = plt.subplot(3, 1, 3)
+                # plt.plot(hs, dphrs)
+                # ut.decorate(ax, 'Ma = {}'.format(Ma), 'altitude en m', 'dphr',
+                #             legend=['sm = {}, km = {}'.format(sms[0], km) for km in kms] +
+                #                    ['sm = {}, km = {}'.format(sms[1], km) for km in kms])
 
         if filename is not None:
             plt.savefig(filename, dpi=250)
+    return fig
+
+
+def plot_trim_antoine(aircraft, hs, Mas, kms, sms):
+    filename = 'plots/seance_2/trims_antoine.png'
+    margins = (0.03, 0.05, 0.98, 0.95, 0.2, 0.38)
+    fig = ut.prepare_fig(window_title='trims_antoine', figsize=(20.48, 10.24), margins=margins)
+    m = 0
+    for k, sm in enumerate(sms):
+        for l, km in enumerate(kms):
+            aircraft.set_mass_and_static_margin(km, sm)
+            for mach in Mas:
+                alphas = []
+                dphrs = []
+                throttles = []
+                hs_plot = []
+                for h in hs:
+                    Xe, Ue = get_trim(aircraft, h, mach, sm, km)
+                    alpha = Xe[3]
+                    dphr = Ue[0]
+                    throttle = Ue[1] * 100
+                    va = Xe[2]
+                    q = Xe[5]
+                    CL = dyn.get_aero_coefs(va, alpha, q, dphr, aircraft)[0]
+                    if CL < 1.3:
+                        hs_plot.append(h)
+                        alphas.append(ut.deg_of_rad(alpha))
+                        dphrs.append(ut.deg_of_rad(dphr))
+                        throttles.append(throttle)
+
+                ax = plt.subplot(4, 3, 3 * m + 1)
+                plt.plot(hs_plot, alphas)
+                ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', r'$\alpha$ deg',
+                            legend=['Mach {}'.format(Ma) for Ma in Mas])
+                ax = plt.subplot(4, 3, 3 * m + 2)
+                plt.plot(hs_plot, dphrs)
+                ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', r'$\delta_{phr}$ deg',
+                            legend=['Mach {}'.format(Ma) for Ma in Mas])
+
+                ax = plt.subplot(4, 3, 3 * m + 3)
+                plt.plot(hs_plot, throttles)
+                ut.decorate(ax, r'$sm : {} \quad km : {}$'.format(sm, km), r'altitude en mètre', 'throttle %',
+                            legend=['Mach {}'.format(Ma) for Ma in Mas])
+            m = m + 1
+
+    plt.savefig(filename, dpi=250)
     return fig
 
 
@@ -267,7 +328,7 @@ if __name__ == "__main__":
 
     trims = get_all_trims(aircraft, hs, Mas, sms, kms)
     # plot_all_trims(aircraft, hs, Mas, sms, kms, trims, 'plots/seance_2/{}_trim.png'.format(aircraft.get_name()))
-    plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
+    # plot_trims(aircraft, sms, kms, filename='plots/seance_2/{} poussee - mach.png'.format(aircraft.get_name()))
 
     """notre point de trim perso"""
     sm, km = sms[0], kms[1]
@@ -278,14 +339,15 @@ if __name__ == "__main__":
     # plot_traj_trim_antoine(aircraft, 11600, Ma, sm, km)
     # plot_traj_trim(aircraft, 3200, Ma, sm, km)
 
-    # hs, Mas = [3000, 11000], [0.4, 0.8]
+    hs, Mas = [3000, 11000], [0.4, 0.8]
     # plot_poles(aircraft, hs, Mas, sms, [kms[0]], 'plots/seance_2/{}_poles_1.png'.format(aircraft.get_name()))
     # plot_poles(aircraft, hs, Mas, sms, [kms[1]], 'plots/seance_2/{}_poles_2.png'.format(aircraft.get_name()))
     # plt.show()
 
-    # for sm in sms:
-    #     for km in kms:
-    #         plot_poles_antoine(aircraft, hs, Mas, sm, km,
-    #                            'plots/seance_2/poles_antoine sm {}, km {}.png'.format(sm, km))
+    for sm in sms:
+        for km in kms:
+            plot_poles_antoine(aircraft, hs, Mas, sm, km,
+                               'plots/seance_2/poles_antoine sm {}, km {}.png'.format(sm, km))
 
-    plot_trim_ben(aircraft, hs, Mas, kms, sms)
+    # plot_trim_ben(aircraft, hs, Mas, kms, sms)
+    # plot_trim_antoine(aircraft, hs, Mas, kms, sms)
